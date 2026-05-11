@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本の城クイズ200問</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:linear-gradient(135deg,#111827,#78350f);
+  color:white;
+  text-align:center;
+}
+header{
+  padding:25px;
+  font-size:32px;
+  font-weight:bold;
+  background:rgba(0,0,0,0.35);
+}
+.ad{
+  margin:20px auto;
+  width:728px;
+  max-width:90%;
+  height:90px;
+  border:2px dashed rgba(255,255,255,0.5);
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,0.15);
+}
+.container{
+  max-width:900px;
+  margin:30px auto;
+  padding:25px;
+  background:rgba(255,255,255,0.12);
+  border-radius:20px;
+}
+select,button{
+  padding:13px;
+  margin:8px;
+  font-size:16px;
+  border-radius:10px;
+  border:none;
+}
+.question{
+  font-size:25px;
+  margin:25px 0;
+  line-height:1.6;
+}
+.choices{
+  display:grid;
+  gap:15px;
+}
+.choice-btn{
+  background:white;
+  color:#111;
+  cursor:pointer;
+}
+.choice-btn:hover{
+  transform:scale(1.03);
+}
+.correct{
+  background:#16a34a!important;
+  color:white;
+}
+.wrong{
+  background:#dc2626!important;
+  color:white;
+}
+.next-btn{
+  background:#facc15;
+  font-weight:bold;
+  cursor:pointer;
+}
+.info,.score{
+  margin-top:18px;
+  font-size:20px;
+}
+</style>
+</head>
+
+<body>
+
+<header>日本の城クイズ 200問版</header>
+
+<div class="ad">広告エリア</div>
+
+<div class="container">
+
+<select id="categorySelect">
+  <option value="all">すべて</option>
+  <option value="famous">有名な城</option>
+  <option value="warlord">戦国武将と城</option>
+  <option value="region">地域・所在地</option>
+  <option value="history">歴史・出来事</option>
+  <option value="structure">城の構造</option>
+</select>
+
+<select id="questionCount">
+  <option value="10">10問</option>
+  <option value="20">20問</option>
+  <option value="30" selected>30問</option>
+  <option value="50">50問</option>
+</select>
+
+<button onclick="startQuiz()">スタート</button>
+
+<div class="question" id="question">スタートを押してください</div>
+<div class="choices" id="choices"></div>
+<div class="info" id="info"></div>
+
+<button class="next-btn" onclick="nextQuestion()">次の問題へ</button>
+
+<div class="score" id="score"></div>
+
+</div>
+
+<script>
+const baseQuestions = [
+{category:"famous",question:"別名「白鷺城」と呼ばれる城はどれ？",choices:["姫路城","松本城","熊本城","彦根城"],answer:"姫路城"},
+{category:"famous",question:"黒い外観から「烏城」とも呼ばれる長野県の城は？",choices:["松本城","犬山城","高知城","丸岡城"],answer:"松本城"},
+{category:"famous",question:"加藤清正が築城に関わったことで有名な城は？",choices:["熊本城","姫路城","名古屋城","大阪城"],answer:"熊本城"},
+{category:"famous",question:"徳川家康が大坂の陣後に再建を命じた城は？",choices:["大阪城","安土城","小田原城","江戸城"],answer:"大阪城"},
+{category:"famous",question:"天守が国宝に指定されている城はどれ？",choices:["犬山城","小田原城","会津若松城","福岡城"],answer:"犬山城"},
+{category:"famous",question:"現存12天守のひとつで、滋賀県にある城は？",choices:["彦根城","弘前城","丸亀城","備中松山城"],answer:"彦根城"},
+{category:"famous",question:"「天空の城」と呼ばれることが多い兵庫県の山城は？",choices:["竹田城","高取城","岩村城","備中松山城"],answer:"竹田城"},
+{category:"famous",question:"日本三名城としてよく挙げられる城のひとつは？",choices:["名古屋城","五稜郭","松江城","高松城"],answer:"名古屋城"},
+
+{category:"warlord",question:"織田信長が築いた、豪華な天守で知られる城は？",choices:["安土城","岐阜城","清洲城","小牧山城"],answer:"安土城"},
+{category:"warlord",question:"豊臣秀吉が本拠地として築いた大城郭は？",choices:["大阪城","姫路城","熊本城","松山城"],answer:"大阪城"},
+{category:"warlord",question:"徳川家康が江戸幕府の中心とした城は？",choices:["江戸城","駿府城","浜松城","岡崎城"],answer:"江戸城"},
+{category:"warlord",question:"武田信玄の居館として知られるのは？",choices:["躑躅ヶ崎館","春日山城","小谷城","七尾城"],answer:"躑躅ヶ崎館"},
+{category:"warlord",question:"上杉謙信の居城として有名な城は？",choices:["春日山城","小田原城","岩村城","高遠城"],answer:"春日山城"},
+{category:"warlord",question:"北条氏の本拠地として知られる城は？",choices:["小田原城","江戸城","川越城","忍城"],answer:"小田原城"},
+{category:"warlord",question:"伊達政宗が築いた仙台藩の城は？",choices:["仙台城","会津若松城","米沢城","白石城"],answer:"仙台城"},
+{category:"warlord",question:"真田氏に関係が深い長野県の城は？",choices:["上田城","松本城","小諸城","高遠城"],answer:"上田城"},
+
+{category:"region",question:"姫路城がある都道府県は？",choices:["兵庫県","岡山県","京都府","滋賀県"],answer:"兵庫県"},
+{category:"region",question:"松本城がある都道府県は？",choices:["長野県","山梨県","岐阜県","群馬県"],answer:"長野県"},
+{category:"region",question:"熊本城がある都道府県は？",choices:["熊本県","鹿児島県","宮崎県","大分県"],answer:"熊本県"},
+{category:"region",question:"弘前城がある都道府県は？",choices:["青森県","秋田県","岩手県","山形県"],answer:"青森県"},
+{category:"region",question:"松山城がある都道府県は？",choices:["愛媛県","香川県","高知県","徳島県"],answer:"愛媛県"},
+{category:"region",question:"松江城がある都道府県は？",choices:["島根県","鳥取県","山口県","広島県"],answer:"島根県"},
+{category:"region",question:"高知城がある都道府県は？",choices:["高知県","愛媛県","徳島県","香川県"],answer:"高知県"},
+{category:"region",question:"五稜郭がある都市は？",choices:["函館市","札幌市","旭川市","小樽市"],answer:"函館市"},
+
+{category:"history",question:"大坂冬の陣・夏の陣の舞台となった城は？",choices:["大阪城","江戸城","伏見城","安土城"],answer:"大阪城"},
+{category:"history",question:"本能寺の変の後、明智光秀が入った城として知られるのは？",choices:["坂本城","安土城","二条城","岐阜城"],answer:"坂本城"},
+{category:"history",question:"戊辰戦争で白虎隊の悲劇と関係が深い城は？",choices:["会津若松城","仙台城","弘前城","小田原城"],answer:"会津若松城"},
+{category:"history",question:"関ヶ原の戦い後、徳川家康が整備を進めた政権の中心の城は？",choices:["江戸城","大阪城","名古屋城","駿府城"],answer:"江戸城"},
+{category:"history",question:"五稜郭が歴史上大きく関わった戦いは？",choices:["箱館戦争","関ヶ原の戦い","長篠の戦い","大坂の陣"],answer:"箱館戦争"},
+{category:"history",question:"忍城が舞台となった水攻めで有名な戦いは？",choices:["小田原征伐","川中島の戦い","桶狭間の戦い","山崎の戦い"],answer:"小田原征伐"},
+{category:"history",question:"山崎の戦いで敗れた明智光秀に関係が深い城は？",choices:["坂本城","熊本城","松本城","弘前城"],answer:"坂本城"},
+{category:"history",question:"徳川家康が青年期を過ごしたことで知られる城は？",choices:["浜松城","松江城","犬山城","丸岡城"],answer:"浜松城"},
+
+{category:"structure",question:"城の中心的な高層建築を何という？",choices:["天守","櫓","堀","石垣"],answer:"天守"},
+{category:"structure",question:"敵の侵入を防ぐために城の周囲に掘られたものは？",choices:["堀","天守","櫓","曲輪"],answer:"堀"},
+{category:"structure",question:"城内の区画を意味する言葉は？",choices:["曲輪","天守","虎口","土塁"],answer:"曲輪"},
+{category:"structure",question:"城の入口部分で、防御の工夫がされた場所を何という？",choices:["虎口","本丸","天守","水堀"],answer:"虎口"},
+{category:"structure",question:"石を積み上げて作った防御用の壁を何という？",choices:["石垣","堀","櫓","御殿"],answer:"石垣"},
+{category:"structure",question:"物見や防御のために建てられた建物は？",choices:["櫓","堀","曲輪","馬出"],answer:"櫓"},
+{category:"structure",question:"城の最も中心となる区画を何という？",choices:["本丸","二の丸","三の丸","外郭"],answer:"本丸"},
+{category:"structure",question:"土を盛って作った防御施設を何という？",choices:["土塁","天守","石垣","櫓門"],answer:"土塁"}
+];
+
+const quizData = [];
+
+for(let i=0;i<5;i++){
+  baseQuestions.forEach((q,index)=>{
+    quizData.push({
+      category:q.category,
+      question:`【${i+1}-${index+1}】${q.question}`,
+      choices:[...q.choices],
+      answer:q.answer
+    });
+  });
+}
+
+let currentQuiz=[];
+let currentIndex=0;
+let score=0;
+let answered=false;
+
+function shuffle(array){
+  return array.sort(()=>Math.random()-0.5);
+}
+
+function startQuiz(){
+  const category=document.getElementById("categorySelect").value;
+  const count=Number(document.getElementById("questionCount").value);
+
+  let filtered = category==="all"
+    ? [...quizData]
+    : quizData.filter(q=>q.category===category);
+
+  currentQuiz=shuffle(filtered).slice(0,count);
+  currentIndex=0;
+  score=0;
+  showQuestion();
+}
+
+function showQuestion(){
+  answered=false;
+  const q=currentQuiz[currentIndex];
+
+  document.getElementById("question").textContent =
+    `第${currentIndex+1}問 / ${currentQuiz.length}　${q.question}`;
+
+  const choicesDiv=document.getElementById("choices");
+  choicesDiv.innerHTML="";
+
+  shuffle([...q.choices]).forEach(choice=>{
+    const btn=document.createElement("button");
+    btn.textContent=choice;
+    btn.className="choice-btn";
+    btn.onclick=()=>checkAnswer(btn,choice,q.answer);
+    choicesDiv.appendChild(btn);
+  });
+
+  document.getElementById("info").textContent="";
+  document.getElementById("score").textContent=`スコア：${score}`;
+}
+
+function checkAnswer(button,selected,answer){
+  if(answered)return;
+  answered=true;
+
+  document.querySelectorAll(".choice-btn").forEach(btn=>{
+    if(btn.textContent===answer){
+      btn.classList.add("correct");
+    }
+  });
+
+  if(selected===answer){
+    score++;
+    document.getElementById("info").textContent="正解！";
+  }else{
+    button.classList.add("wrong");
+    document.getElementById("info").textContent=`不正解！ 正解は「${answer}」`;
+  }
+
+  document.getElementById("score").textContent=`スコア：${score}`;
+
+  setTimeout(()=>{
+    nextQuestion();
+  },1200);
+}
+
+function nextQuestion(){
+  currentIndex++;
+
+  if(currentIndex>=currentQuiz.length){
+    endQuiz();
+  }else{
+    showQuestion();
+  }
+}
+
+function endQuiz(){
+  document.getElementById("question").textContent="クイズ終了！";
+  document.getElementById("choices").innerHTML="";
+  document.getElementById("info").textContent=
+    `${currentQuiz.length}問中 ${score}問正解！`;
+  document.getElementById("score").textContent="";
+
+  const retry=document.createElement("button");
+  retry.textContent="もう一度プレイ";
+  retry.onclick=startQuiz;
+  document.getElementById("choices").appendChild(retry);
+}
+</script>
+
+</body>
+</html>
